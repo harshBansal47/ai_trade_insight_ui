@@ -5,6 +5,7 @@ import { apiClient } from "@/lib/api";
 export type TradingMode = "SCALPER" | "SWING" | "CONSERVATIVE";
 
 export type TaskStatus = "pending" | "processing" | "completed" | "failed";
+export type TaskAction = "LONG" | "SHORT" | "WAIT";
 
 export interface AnalyzeRequest {
   coin: string;
@@ -29,6 +30,7 @@ export interface AIInsight {
   timeframe?: string;
   risk_level: "low" | "medium" | "high";
   signals: Signal[];
+  action: TaskAction;
   recommendation: string;
   market_analysis: string;
   technical_indicators?: TechnicalIndicator[];
@@ -70,6 +72,8 @@ export interface HistoryItem {
   created_at: string;
   completed_at?: string;
 }
+
+
 
 export interface HistoryResponse {
   items: HistoryItem[];
