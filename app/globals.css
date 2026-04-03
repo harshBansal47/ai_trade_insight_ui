@@ -49,38 +49,30 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+    --font-display: "Syne", sans-serif;
+  --font-sans: "DM Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --background: 220 20% 6%;
+  --foreground: 210 20% 96%;
+  --card: 220 18% 9%;
+  --card-foreground: 210 20% 96%;
+  --popover: 220 18% 9%;
+  --popover-foreground: 210 20% 96%;
+  --primary: 189 100% 50%;
+  --primary-foreground: 220 20% 6%;
+  --secondary: 220 15% 14%;
+  --secondary-foreground: 210 20% 96%;
+  --muted: 220 15% 14%;
+  --muted-foreground: 215 15% 55%;
+  --accent: 263 100% 60%;
+  --accent-foreground: 210 20% 96%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 20% 96%;
+  --border: 220 15% 14%;
+  --input: 220 15% 14%;
+  --ring: 189 100% 50%;
+  --radius: 0.75rem;
 }
 
 .dark {
@@ -116,15 +108,177 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
-  }
+* {
+  border-color: hsl(var(--border));
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  font-feature-settings: "rlig" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+code, pre, .font-mono {
+  font-family: var(--font-mono);
+}
+
+/* ── Scrollbar ──────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: hsl(220 15% 20%);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: hsl(220 15% 30%); }
+
+/* ── Glass morphism utilities ───────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ── Glow effects ───────────────────────────── */
+.glow-cyan {
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.15),
+              0 0 60px rgba(0, 212, 255, 0.05);
+}
+.glow-cyan-sm {
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+}
+.glow-purple {
+  box-shadow: 0 0 30px rgba(123, 47, 255, 0.2),
+              0 0 60px rgba(123, 47, 255, 0.08);
+}
+.text-glow-cyan {
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+}
+.text-glow-green {
+  text-shadow: 0 0 20px rgba(0, 255, 135, 0.5);
+}
+
+/* ── Gradient text ──────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #00D4FF 0%, #7B2FFF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-green {
+  background: linear-gradient(135deg, #00FF87 0%, #00D4FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Grid background ────────────────────────── */
+.bg-grid {
+  background-image: linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── Shimmer loading ────────────────────────── */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(220 15% 14%) 25%,
+    hsl(220 15% 20%) 50%,
+    hsl(220 15% 14%) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ── Animated border ────────────────────────── */
+.animated-border {
+  position: relative;
+}
+.animated-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, #00D4FF, #7B2FFF, #00FF87, #00D4FF);
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: gradient-rotate 4s linear infinite;
+}
+
+@keyframes gradient-rotate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── Noise texture overlay ──────────────────── */
+.noise-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Custom range input ─────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: hsl(var(--secondary));
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #00D4FF;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+}
+
+/* ── Page transitions ───────────────────────── */
+.page-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* ── Sonner toast override ──────────────────── */
+[data-sonner-toaster] {
+  font-family: var(--font-sans) !important;
+}
+
