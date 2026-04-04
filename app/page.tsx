@@ -1,3 +1,4 @@
+"use client"; 
 import Link from "next/link";
 import {
   ArrowRight,
@@ -6,13 +7,23 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
+  Menu,
   Shield,
   Sparkles,
   TrendingUp,
+  X,
   Zap,
 } from "lucide-react";
+import { useState } from "react";
+
+const NAV_LINKS = [
+  { href: "#features",     label: "Features"     },
+  { href: "#how-it-works", label: "How it works" },
+  { href: "#pricing",      label: "Pricing"      },
+];
 
 export default function LandingPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* ── Background effects ──────────────────────────────────────────────── */}
@@ -22,40 +33,114 @@ export default function LandingPage() {
       <div className="fixed top-20 right-1/4 w-[400px] h-[400px] bg-violet-500/[0.05] rounded-full blur-[100px] pointer-events-none" />
 
       {/* ── Navbar ──────────────────────────────────────────────────────────── */}
-      <header className="relative z-10 flex items-center justify-between px-6 lg:px-12 h-16 border-b border-white/[0.05]">
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 shadow-[0_0_16px_rgba(0,212,255,0.4)]">
-            <Zap className="w-4 h-4 text-black" strokeWidth={2.5} />
+     <header className="relative z-20">
+        {/* Main bar */}
+        <div className="flex items-center justify-between px-5 lg:px-12 h-16 border-b border-white/[0.06] bg-[hsl(220_20%_6%/0.7)] backdrop-blur-md">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2.5 shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 shadow-[0_0_16px_rgba(0,212,255,0.4)]">
+              <Zap className="w-4 h-4 text-black" strokeWidth={2.5} />
+            </div>
+            <span
+              className="text-base font-bold"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              CryptoAI{" "}
+              <span className="gradient-text">Insights</span>
+            </span>
+          </Link>
+ 
+          {/* Desktop nav — hidden on mobile */}
+          <nav className="hidden md:flex items-center gap-1">
+            {NAV_LINKS.map(({ href, label }) => (
+              <a
+                key={href}
+                href={href}
+                className="px-3.5 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-all duration-200"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+ 
+          {/* Right side */}
+          <div className="flex items-center gap-2.5">
+            {/* "Sign in" — visible on desktop only */}
+            <Link
+              href="/auth"
+              className="hidden sm:block text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+            >
+              Sign in
+            </Link>
+ 
+            {/* CTA — always visible */}
+            <Link
+              href="/auth"
+              className="hidden sm:flex flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-400 text-black text-sm font-semibold hover:bg-cyan-300 transition-all shadow-[0_0_16px_rgba(0,212,255,0.3)] hover:shadow-[0_0_24px_rgba(0,212,255,0.5)] hover:scale-105 active:scale-95"
+            >
+              Get Started
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+ 
+            {/* Hamburger — visible on mobile only */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden w-9 h-9 rounded-lg flex items-center justify-center border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-muted-foreground hover:text-foreground transition-all"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {mobileMenuOpen
+                ? <X className="w-4 h-4" />
+                : <Menu className="w-4 h-4" />}
+            </button>
           </div>
-          <span
-            className="text-base font-bold"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            CryptoAI <span className="gradient-text">Insights</span>
-          </span>
         </div>
+ 
+        {/* Mobile drawer — slides down below the bar */}
+        {mobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 top-16 bg-black/40 backdrop-blur-sm z-10"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            {/* Menu panel */}
+            <div className="absolute top-full left-0 right-0 z-20 bg-[hsl(220_18%_8%)] border-b border-white/[0.08] animate-fade-in shadow-2xl">
+              <nav className="flex flex-col px-4 py-3 gap-1">
+                {NAV_LINKS.map(({ href, label }) => (
+                  <a
+                    key={href}
+                    href={href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center px-4 py-3 rounded-xl text-base text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-all"
+                  >
+                    {label}
+                  </a>
+                ))}
+ 
+                {/* Divider */}
+                <div className="h-px bg-white/[0.07] my-1" />
+ 
+                {/* Sign in row */}
+                <Link
+                  href="/auth"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center px-4 py-3 rounded-xl text-base text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-all"
+                >
+                  Sign in
+                </Link>
 
-        <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-          <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-          <a href="#how-it-works" className="hover:text-foreground transition-colors">How it works</a>
-          <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
-        </nav>
-
-        <div className="flex items-center gap-3">
-          <Link
-            href="/auth"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/auth"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-400 text-black text-sm font-semibold hover:bg-cyan-300 transition-all shadow-[0_0_16px_rgba(0,212,255,0.3)] hover:shadow-[0_0_24px_rgba(0,212,255,0.5)] hover:scale-105"
-          >
-            Get Started
-            <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
+                <Link
+              href="/auth"
+              className=" flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-400 text-black text-sm font-semibold hover:bg-cyan-300 transition-all shadow-[0_0_16px_rgba(0,212,255,0.3)] hover:shadow-[0_0_24px_rgba(0,212,255,0.5)] hover:scale-105 active:scale-95"
+            >
+              Get Started
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+              </nav>
+            </div>
+          </>
+        )}
       </header>
 
       {/* ═══════════════════════════════════════════════════════════════════════
