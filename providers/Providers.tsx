@@ -5,12 +5,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import QueryProvider from "./QueryProvider";
 import { useSyncAuthCookie } from "@/hooks/useAuth";
 import SessionProvider from "./SessionProvider";
+import { usePointsSync } from "@/store/useAuthStore";
 
 /**
  * Inner component so hooks can run inside QueryProvider
  */
 function InnerProviders({ children }: { children: ReactNode }) {
   // Sync auth token to cookie whenever store changes
+  usePointsSync();
   useSyncAuthCookie();
   return <>{children}</>;
 }
@@ -20,6 +22,7 @@ function InnerProviders({ children }: { children: ReactNode }) {
  * Import this in app/layout.tsx.
  */
 export default function Providers({ children }: { children: ReactNode }) {
+ 
   return (
     <SessionProvider>
     <QueryProvider>
