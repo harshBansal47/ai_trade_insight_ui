@@ -228,7 +228,6 @@ function LoginForm({ onForgot, callbackUrl }: {
 
   const handleGoogle = async () => {
     setGoogleLoading(true);
-    // NextAuth handles the full OAuth redirect — no manual exchange here
     await signIn("google", { callbackUrl });
   };
 

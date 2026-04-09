@@ -35,7 +35,7 @@ export const authOptions: NextAuthOptions = {
 
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 7 },
   secret: process.env.NEXTAUTH_SECRET,
-  pages: { signIn: "/auth", error: "/auth?error=true", signOut: "/" },
+  pages: { signIn: "/api/auth", error: "/api/auth?error=true", signOut: "/" },
 
   providers: [
     // ── Google OAuth ──────────────────────────────────────────────────────

@@ -17,13 +17,12 @@ export default function DashboardGroupLayout({
 }) {
   const { status } = useSession();
   const router = useRouter();
-
-  // Silently refresh user profile + points on mount
   useRefreshProfile();
 
   useEffect(() => {
     if (status !== "authenticated") {
-      router.replace("/auth");
+      console.log("User is not authenticated. Redirecting to auth page...");
+      router.replace("/api/auth");
     }
   }, [status, router]);
 

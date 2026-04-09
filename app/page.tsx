@@ -177,13 +177,13 @@ function NavRight({ onMenuToggle }: { onMenuToggle: () => void }) {
         /* ── Signed-out state ────────────────────────────────── */
         <>
           <Link
-            href="/auth"
+            href="/api/auth"
             className="hidden sm:block text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
           >
             Sign in
           </Link>
           <Link
-            href="/auth"
+            href="/api/auth"
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-400 text-black text-sm font-semibold hover:bg-cyan-300 transition-all shadow-[0_0_16px_rgba(0,212,255,0.3)] hover:shadow-[0_0_24px_rgba(0,212,255,0.5)] hover:scale-105 active:scale-95"
           >
             Get Started
@@ -297,7 +297,7 @@ export default function LandingPage() {
                   </>
                 ) : (
                   /* Signed-out mobile drawer */
-                  <Link href="/auth" onClick={() => setMobileMenuOpen(false)}
+                  <Link href="/api/auth" onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center px-4 py-3 rounded-xl text-base text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-all">
                     Sign in
                   </Link>
@@ -369,7 +369,7 @@ export default function LandingPage() {
               /* ── New visitor ─────────────────────────────── */
               <>
                 <Link
-                  href="/auth"
+                  href="/api/auth"
                   className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-cyan-400 text-black font-semibold text-sm hover:bg-cyan-300 transition-all shadow-[0_0_24px_rgba(0,212,255,0.4)] hover:shadow-[0_0_32px_rgba(0,212,255,0.6)] hover:scale-105 active:scale-95"
                 >
                   <Sparkles className="w-4 h-4" />
@@ -646,7 +646,7 @@ export default function LandingPage() {
                   <p className="text-sm text-muted-foreground mb-6">
                     Join traders using AI-powered analysis to make better decisions. Free to start.
                   </p>
-                  <Link href="/auth"
+                  <Link href="/api/auth"
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-cyan-400 text-black font-semibold text-sm hover:bg-cyan-300 transition-all shadow-[0_0_20px_rgba(0,212,255,0.3)] hover:shadow-[0_0_30px_rgba(0,212,255,0.5)] hover:scale-105">
                     <Sparkles className="w-4 h-4" />
                     Get started free
