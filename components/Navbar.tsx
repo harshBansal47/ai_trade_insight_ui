@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useLogout } from "@/hooks/useAuth";
 import NotificationBell from "./NotificationBell";
+import { useSession } from "next-auth/react";
 
 const NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -21,7 +22,9 @@ const NAV_LINKS = [
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, points } = useAuthStore();
+  const { data: session, status } = useSession();
+  const points = session?.points ?? 0;
+  const user = session?.user;
   const handleLogout = useLogout();
   const [menuOpen, setMenuOpen] = useState(false);
 

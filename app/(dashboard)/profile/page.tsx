@@ -20,9 +20,12 @@ import { taskService } from "@/services/task.service";
 import { formatDate } from "@/lib/utils";
 import StatCard from "@/components/StatCard";
 import { SkeletonCard } from "@/components/Loader";
+import { useSession } from "next-auth/react";
 
 export default function ProfilePage() {
-  const { user, points, updateUser } = useAuthStore();
+  const { data:session,status } = useSession();
+  const points = session?.points ?? 0;
+  const user = session?.user;
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user?.name ?? "");
   const [saving, setSaving] = useState(false);
@@ -46,20 +49,20 @@ export default function ProfilePage() {
   }, {});
   const topCoin = Object.entries(coinCounts).sort((a, b) => b[1] - a[1])[0];
 
-  const handleSaveName = async () => {
-    if (!name.trim() || name === user?.name) { setEditing(false); return; }
-    setSaving(true);
-    try {
-      await authService.getProfile(); // placeholder — real app: PATCH /auth/me
-      updateUser({ name: name.trim() });
-      toast.success("Profile updated");
-      setEditing(false);
-    } catch {
-      toast.error("Failed to update profile");
-    } finally {
-      setSaving(false);
-    }
-  };
+  // const handleSaveName = async () => {
+  //   if (!name.trim() || name === user?.name) { setEditing(false); return; }
+  //   setSaving(true);
+  //   try {
+  //     await authService.getProfile(); 
+  //     updateUser({ name: name.trim() });
+  //     toast.success("Profile updated");
+  //     setEditing(false);
+  //   } catch {
+  //     toast.error("Failed to update profile");
+  //   } finally {
+  //     setSaving(false);
+  //   }
+  // };
 
   const avatarLetter = user?.name?.charAt(0)?.toUpperCase() ?? "U";
 
@@ -95,7 +98,7 @@ export default function ProfilePage() {
           <div className="flex-1 min-w-0 space-y-3">
             {editing ? (
               <div className="flex items-center gap-2">
-                <input
+                {/* <input
                   autoFocus
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -108,7 +111,7 @@ export default function ProfilePage() {
                   className="px-3 py-1.5 rounded-lg bg-cyan-400 text-black text-xs font-semibold hover:bg-cyan-300 transition-colors disabled:opacity-70 flex items-center gap-1.5"
                 >
                   {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : "Save"}
-                </button>
+                </button> */}
                 <button
                   onClick={() => { setEditing(false); setName(user?.name ?? ""); }}
                   className="px-3 py-1.5 rounded-lg border border-white/[0.1] text-xs text-muted-foreground hover:text-foreground"

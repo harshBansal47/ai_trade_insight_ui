@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "@/store/useAuthStore";
 import { useAnalyze } from "@/hooks/useAnalyze";
 import { taskService } from "@/services/task.service";
 import ChatInput from "@/components/ChatInput";
@@ -21,6 +20,8 @@ import { Loader, SkeletonCard } from "@/components/Loader";
 import type { AnalyzeRequest } from "@/services/task.service";
 import { formatRelativeTime, getModeColor } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { useSession } from "next-auth/react"; 
+import { useAuthStore } from "@/store/useAuthStore";
 
 const QUICK_PROMPTS = [
   { coin: "Bitcoin",  symbol: "BTC", mode: "SCALPER"      as const, label: "⚡ BTC Scalp"    },
@@ -30,9 +31,11 @@ const QUICK_PROMPTS = [
 ];
 
 export default function DashboardPage() {
-  const { user, points } = useAuthStore();
+  const { points } = useAuthStore();
   const bottomRef = useRef<HTMLDivElement>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const { data: sessionData } = useSession();
+  const user = sessionData?.user; 
 
   const { analyze, taskResult, isLoading, isCompleted, pollingState, attempts, reset } =
     useAnalyze();

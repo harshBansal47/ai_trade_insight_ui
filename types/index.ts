@@ -1,6 +1,5 @@
 // ── Re-export all service types for convenient importing ──────────────────────
 
-export type { User } from "@/store/useAuthStore";
 
 export type {
   TradingMode,

@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -8,27 +7,27 @@ import MobileNav from "@/components/MobileNav";
 import CommandPalette from "@/components/CommandPalette";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageLoader } from "@/components/Loader";
-import { useAuthStore } from "@/store/useAuthStore";
 import { useRefreshProfile } from "@/hooks/useAuth";
+import { useSession } from "next-auth/react";
 
 export default function DashboardGroupLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated } = useAuthStore();
+  const { status } = useSession();
   const router = useRouter();
 
   // Silently refresh user profile + points on mount
   useRefreshProfile();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (status !== "authenticated") {
       router.replace("/auth");
     }
-  }, [isAuthenticated, router]);
+  }, [status, router]);
 
-  if (!isAuthenticated) return <PageLoader />;
+  if (status !== "authenticated") return <PageLoader />;
 
   return (
     <div className="min-h-screen bg-background">

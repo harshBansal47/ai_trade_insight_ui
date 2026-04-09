@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api";
-import type { User } from "@/store/useAuthStore";
+import { User } from "@/types";
+
 
 // ── Types ────────────────────────────────────────────────────────────────────
 

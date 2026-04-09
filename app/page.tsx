@@ -1,5 +1,8 @@
-"use client"; 
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 import {
   ArrowRight,
   BarChart2,
@@ -7,6 +10,8 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
+  LayoutDashboard,
+  LogOut,
   Menu,
   Shield,
   Sparkles,
@@ -14,7 +19,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
   { href: "#features",     label: "Features"     },
@@ -22,8 +27,188 @@ const NAV_LINKS = [
   { href: "#pricing",      label: "Pricing"      },
 ];
 
+// ── User menu (shown when signed in) ─────────────────────────────────────────
+
+function UserMenu() {
+  const { data: session } = useSession();
+  const [open, setOpen] = useState(false);
+
+  const user   = session?.user;
+  const points = session?.points ?? 0;
+  const initial = user?.name?.charAt(0)?.toUpperCase() ?? "U";
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-xl hover:bg-white/[0.06] transition-all duration-200 group"
+      >
+        {/* Avatar */}
+        {user?.image ? (
+          <img
+            src={user.image}
+            alt={user.name ?? ""}
+            className="w-7 h-7 rounded-full object-cover ring-1 ring-white/[0.12]"
+          />
+        ) : (
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center text-[11px] font-bold text-black shrink-0">
+            {initial}
+          </div>
+        )}
+
+        {/* Name + points (desktop) */}
+        <div className="hidden sm:flex flex-col items-start leading-none gap-0.5">
+          <span className="text-xs font-semibold text-foreground max-w-[80px] truncate">
+            {user?.name ?? "User"}
+          </span>
+          <span className="text-[10px] text-cyan-400 font-medium">
+            {points} pts
+          </span>
+        </div>
+
+        <ChevronRight
+          className={cn(
+            "hidden sm:block w-3.5 h-3.5 text-muted-foreground/50 transition-transform duration-200",
+            open && "rotate-90"
+          )}
+        />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-full mt-2 w-56 glass rounded-2xl border border-white/[0.1] shadow-2xl z-50 overflow-hidden animate-fade-in">
+            {/* Profile header */}
+            <div className="px-4 py-4 border-b border-white/[0.07]">
+              <div className="flex items-center gap-3">
+                {user?.image ? (
+                  <img
+                    src={user.image}
+                    alt={user.name ?? ""}
+                    className="w-9 h-9 rounded-xl object-cover ring-1 ring-white/[0.12]"
+                  />
+                ) : (
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center text-sm font-bold text-black shrink-0">
+                    {initial}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">
+                    {user?.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user?.email}
+                  </p>
+                </div>
+              </div>
+
+              {/* Points bar */}
+              <div className="mt-3 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                  <span className="text-xs font-semibold text-cyan-400">
+                    {points} points
+                  </span>
+                </div>
+                <Link
+                  href="/pricing"
+                  onClick={() => setOpen(false)}
+                  className="text-[10px] text-muted-foreground hover:text-cyan-400 transition-colors"
+                >
+                  Buy more →
+                </Link>
+              </div>
+            </div>
+
+            {/* Menu actions */}
+            <div className="py-1.5">
+              <Link
+                href="/dashboard"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-colors"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                Go to Dashboard
+              </Link>
+            </div>
+
+            <div className="border-t border-white/[0.07] py-1.5">
+              <button
+                onClick={() => { setOpen(false); signOut({ callbackUrl: "/" }); }}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-400 hover:bg-red-400/[0.06] transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign out
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Navbar right side — switches based on session ─────────────────────────────
+
+function NavRight({ onMenuToggle }: { onMenuToggle: () => void }) {
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated";
+  const isLoading       = status === "loading";
+
+  return (
+    <div className="flex items-center gap-2.5">
+      {isLoading ? (
+        /* Skeleton while session loads — prevents layout shift */
+        <div className="w-24 h-8 rounded-xl bg-white/[0.05] animate-pulse" />
+      ) : isAuthenticated ? (
+        /* ── Signed-in state ─────────────────────────────────── */
+        <>
+          <Link
+            href="/dashboard"
+            className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-400 text-black text-sm font-semibold hover:bg-cyan-300 transition-all shadow-[0_0_16px_rgba(0,212,255,0.3)] hover:shadow-[0_0_24px_rgba(0,212,255,0.5)] hover:scale-105 active:scale-95"
+          >
+            <LayoutDashboard className="w-3.5 h-3.5" />
+            Dashboard
+          </Link>
+          <UserMenu />
+        </>
+      ) : (
+        /* ── Signed-out state ────────────────────────────────── */
+        <>
+          <Link
+            href="/auth"
+            className="hidden sm:block text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+          >
+            Sign in
+          </Link>
+          <Link
+            href="/auth"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-400 text-black text-sm font-semibold hover:bg-cyan-300 transition-all shadow-[0_0_16px_rgba(0,212,255,0.3)] hover:shadow-[0_0_24px_rgba(0,212,255,0.5)] hover:scale-105 active:scale-95"
+          >
+            Get Started
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </>
+      )}
+
+      {/* Hamburger — always shown on mobile */}
+      <button
+        type="button"
+        onClick={onMenuToggle}
+        className="md:hidden w-9 h-9 rounded-lg flex items-center justify-center border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-muted-foreground hover:text-foreground transition-all"
+      >
+        <Menu className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
+
 export default function LandingPage() {
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated";
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* ── Background effects ──────────────────────────────────────────────── */}
@@ -33,110 +218,90 @@ export default function LandingPage() {
       <div className="fixed top-20 right-1/4 w-[400px] h-[400px] bg-violet-500/[0.05] rounded-full blur-[100px] pointer-events-none" />
 
       {/* ── Navbar ──────────────────────────────────────────────────────────── */}
-     <header className="relative z-20">
-        {/* Main bar */}
+      <header className="relative z-20">
         <div className="flex items-center justify-between px-5 lg:px-12 h-16 border-b border-white/[0.06] bg-[hsl(220_20%_6%/0.7)] backdrop-blur-md">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0">
             <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 shadow-[0_0_16px_rgba(0,212,255,0.4)]">
               <Zap className="w-4 h-4 text-black" strokeWidth={2.5} />
             </div>
-            <span
-              className="text-base font-bold"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              CryptoAI{" "}
-              <span className="gradient-text">Insights</span>
+            <span className="text-base font-bold" style={{ fontFamily: "var(--font-display)" }}>
+              CryptoAI <span className="gradient-text">Insights</span>
             </span>
           </Link>
- 
-          {/* Desktop nav — hidden on mobile */}
+
+          {/* Desktop nav links */}
           <nav className="hidden md:flex items-center gap-1">
             {NAV_LINKS.map(({ href, label }) => (
-              <a
-                key={href}
-                href={href}
-                className="px-3.5 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-all duration-200"
-              >
+              <a key={href} href={href}
+                className="px-3.5 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-all duration-200">
                 {label}
               </a>
             ))}
           </nav>
- 
-          {/* Right side */}
-          <div className="flex items-center gap-2.5">
-            {/* "Sign in" — visible on desktop only */}
-            <Link
-              href="/auth"
-              className="hidden sm:block text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
-            >
-              Sign in
-            </Link>
- 
-            {/* CTA — always visible */}
-            <Link
-              href="/auth"
-              className="hidden sm:flex flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-400 text-black text-sm font-semibold hover:bg-cyan-300 transition-all shadow-[0_0_16px_rgba(0,212,255,0.3)] hover:shadow-[0_0_24px_rgba(0,212,255,0.5)] hover:scale-105 active:scale-95"
-            >
-              Get Started
-              <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
- 
-            {/* Hamburger — visible on mobile only */}
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden w-9 h-9 rounded-lg flex items-center justify-center border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.08] text-muted-foreground hover:text-foreground transition-all"
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-            >
-              {mobileMenuOpen
-                ? <X className="w-4 h-4" />
-                : <Menu className="w-4 h-4" />}
-            </button>
-          </div>
+
+          {/* Right side — session-aware */}
+          <NavRight onMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
         </div>
- 
-        {/* Mobile drawer — slides down below the bar */}
+
+        {/* Mobile drawer */}
         {mobileMenuOpen && (
           <>
-            {/* Backdrop */}
-            <div
-              className="fixed inset-0 top-16 bg-black/40 backdrop-blur-sm z-10"
-              onClick={() => setMobileMenuOpen(false)}
-            />
-            {/* Menu panel */}
+            <div className="fixed inset-0 top-16 bg-black/40 backdrop-blur-sm z-10"
+              onClick={() => setMobileMenuOpen(false)} />
             <div className="absolute top-full left-0 right-0 z-20 bg-[hsl(220_18%_8%)] border-b border-white/[0.08] animate-fade-in shadow-2xl">
               <nav className="flex flex-col px-4 py-3 gap-1">
                 {NAV_LINKS.map(({ href, label }) => (
-                  <a
-                    key={href}
-                    href={href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center px-4 py-3 rounded-xl text-base text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-all"
-                  >
+                  <a key={href} href={href} onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center px-4 py-3 rounded-xl text-base text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-all">
                     {label}
                   </a>
                 ))}
- 
-                {/* Divider */}
-                <div className="h-px bg-white/[0.07] my-1" />
- 
-                {/* Sign in row */}
-                <Link
-                  href="/auth"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center px-4 py-3 rounded-xl text-base text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-all"
-                >
-                  Sign in
-                </Link>
 
-                <Link
-              href="/auth"
-              className=" flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-400 text-black text-sm font-semibold hover:bg-cyan-300 transition-all shadow-[0_0_16px_rgba(0,212,255,0.3)] hover:shadow-[0_0_24px_rgba(0,212,255,0.5)] hover:scale-105 active:scale-95"
-            >
-              Get Started
-              <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
+                <div className="h-px bg-white/[0.07] my-1" />
+
+                {isAuthenticated ? (
+                  /* Signed-in mobile drawer */
+                  <>
+                    {/* Mini profile card */}
+                    <div className="flex items-center gap-3 px-4 py-3">
+                      {session?.user?.image ? (
+                        <img src={session.user.image} alt="" className="w-9 h-9 rounded-xl object-cover" />
+                      ) : (
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center text-sm font-bold text-black shrink-0">
+                          {session?.user?.name?.charAt(0)?.toUpperCase() ?? "U"}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">
+                          {session?.user?.name}
+                        </p>
+                        <p className="text-xs text-cyan-400 font-medium">
+                          {session?.points ?? 0} points
+                        </p>
+                      </div>
+                    </div>
+
+                    <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-3 rounded-xl text-base text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-all">
+                      <LayoutDashboard className="w-4 h-4" />
+                      Dashboard
+                    </Link>
+
+                    <button
+                      onClick={() => { setMobileMenuOpen(false); signOut({ callbackUrl: "/" }); }}
+                      className="w-full flex items-center gap-2.5 px-4 py-3 rounded-xl text-base text-red-400 hover:bg-red-400/[0.06] transition-all">
+                      <LogOut className="w-4 h-4" />
+                      Sign out
+                    </button>
+                  </>
+                ) : (
+                  /* Signed-out mobile drawer */
+                  <Link href="/auth" onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center px-4 py-3 rounded-xl text-base text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-all">
+                    Sign in
+                  </Link>
+                )}
               </nav>
             </div>
           </>
@@ -177,33 +342,58 @@ export default function LandingPage() {
             for scalpers, swing traders, and conservative investors.
           </p>
 
-          {/* CTA */}
+          {/* CTA — session-aware */}
           <div
             className="flex flex-col sm:flex-row items-center justify-center gap-3 animate-fade-in"
             style={{ animationDelay: "0.3s" }}
           >
-            <Link
-              href="/auth"
-              className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-cyan-400 text-black font-semibold text-sm hover:bg-cyan-300 transition-all shadow-[0_0_24px_rgba(0,212,255,0.4)] hover:shadow-[0_0_32px_rgba(0,212,255,0.6)] hover:scale-105 active:scale-95"
-            >
-              <Sparkles className="w-4 h-4" />
-              Start for free
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <a
-              href="#how-it-works"
-              className="flex items-center gap-2 px-6 py-3.5 rounded-xl border border-white/[0.1] text-muted-foreground text-sm hover:text-foreground hover:border-white/[0.2] transition-all hover:bg-white/[0.03]"
-            >
-              See how it works
-            </a>
+            {isAuthenticated ? (
+              /* ── Returning user ──────────────────────────── */
+              <>
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-cyan-400 text-black font-semibold text-sm hover:bg-cyan-300 transition-all shadow-[0_0_24px_rgba(0,212,255,0.4)] hover:shadow-[0_0_32px_rgba(0,212,255,0.6)] hover:scale-105 active:scale-95"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Go to Dashboard
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <a
+                  href="#features"
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-xl border border-white/[0.1] text-muted-foreground text-sm hover:text-foreground hover:border-white/[0.2] transition-all hover:bg-white/[0.03]"
+                >
+                  Explore features
+                </a>
+              </>
+            ) : (
+              /* ── New visitor ─────────────────────────────── */
+              <>
+                <Link
+                  href="/auth"
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-cyan-400 text-black font-semibold text-sm hover:bg-cyan-300 transition-all shadow-[0_0_24px_rgba(0,212,255,0.4)] hover:shadow-[0_0_32px_rgba(0,212,255,0.6)] hover:scale-105 active:scale-95"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Start for free
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <a
+                  href="#how-it-works"
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-xl border border-white/[0.1] text-muted-foreground text-sm hover:text-foreground hover:border-white/[0.2] transition-all hover:bg-white/[0.03]"
+                >
+                  See how it works
+                </a>
+              </>
+            )}
           </div>
 
-          {/* Social proof */}
+          {/* Social proof — hide "no credit card" note if already signed in */}
           <p
             className="mt-8 text-xs text-muted-foreground/50 animate-fade-in"
             style={{ animationDelay: "0.4s" }}
           >
-            50 free analysis points on signup · No credit card required
+            {isAuthenticated
+              ? `Welcome back, ${session?.user?.name?.split(" ")[0]} · ${session?.points ?? 0} points available`
+              : "50 free analysis points on signup · No credit card required"}
           </p>
         </div>
 
@@ -295,10 +485,10 @@ export default function LandingPage() {
                 >
                   <feature.icon className={`w-5 h-5 ${feature.iconColor}`} />
                 </div>
-                <h3 className="text-md font-semibold text-foreground mb-2">
+                <h3 className="text-sm font-semibold text-foreground mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -313,7 +503,7 @@ export default function LandingPage() {
       <section id="how-it-works" className="relative z-10 py-24 px-6 border-y border-white/[0.04]">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-sm text-violet-400 font-semibold uppercase tracking-widest mb-3">
+            <p className="text-xs text-violet-400 font-semibold uppercase tracking-widest mb-3">
               How it works
             </p>
             <h2
@@ -332,17 +522,17 @@ export default function LandingPage() {
               >
                 <div className="flex-shrink-0 w-10 h-10 rounded-xl glass-strong border border-white/[0.1] flex items-center justify-center">
                   <span
-                    className="text-md font-bold gradient-text"
+                    className="text-sm font-bold gradient-text"
                     style={{ fontFamily: "var(--font-display)" }}
                   >
                     {i + 1}
                   </span>
                 </div>
                 <div>
-                  <h3 className="text-md font-semibold text-foreground mb-1">
+                  <h3 className="text-sm font-semibold text-foreground mb-1">
                     {step.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     {step.description}
                   </p>
                 </div>
@@ -421,9 +611,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-          CTA SECTION
-      ══════════════════════════════════════════════════════════════════════════ */}
+      {/* CTA SECTION */}
       <section className="relative z-10 py-24 px-6">
         <div className="max-w-xl mx-auto text-center">
           <div className="glass rounded-3xl p-10 border border-white/[0.08] relative overflow-hidden">
@@ -432,24 +620,40 @@ export default function LandingPage() {
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center mx-auto mb-5 shadow-[0_0_20px_rgba(0,212,255,0.4)]">
                 <Brain className="w-6 h-6 text-black" />
               </div>
-              <h2
-                className="text-3xl font-bold mb-3"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                Start trading smarter today
-              </h2>
-              <p className="text-sm text-muted-foreground mb-6">
-                Join traders using AI-powered analysis to make better decisions.
-                Free to start.
-              </p>
-              <Link
-                href="/auth"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-cyan-400 text-black font-semibold text-sm hover:bg-cyan-300 transition-all shadow-[0_0_20px_rgba(0,212,255,0.3)] hover:shadow-[0_0_30px_rgba(0,212,255,0.5)] hover:scale-105"
-              >
-                <Sparkles className="w-4 h-4" />
-                Get started free
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <h2 className="text-3xl font-bold mb-3" style={{ fontFamily: "var(--font-display)" }}>
+                    Ready to analyze?
+                  </h2>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    You have{" "}
+                    <span className="text-cyan-400 font-semibold">{session?.points ?? 0} points</span>{" "}
+                    available &mdash; that&apos;s{" "}
+                    <span className="text-foreground font-medium">{Math.floor((session?.points ?? 0) / 10)} analyses.</span>
+                  </p>
+                  <Link href="/dashboard"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-cyan-400 text-black font-semibold text-sm hover:bg-cyan-300 transition-all shadow-[0_0_20px_rgba(0,212,255,0.3)] hover:shadow-[0_0_30px_rgba(0,212,255,0.5)] hover:scale-105">
+                    <LayoutDashboard className="w-4 h-4" />
+                    Open Dashboard
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-3xl font-bold mb-3" style={{ fontFamily: "var(--font-display)" }}>
+                    Start trading smarter today
+                  </h2>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Join traders using AI-powered analysis to make better decisions. Free to start.
+                  </p>
+                  <Link href="/auth"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-cyan-400 text-black font-semibold text-sm hover:bg-cyan-300 transition-all shadow-[0_0_20px_rgba(0,212,255,0.3)] hover:shadow-[0_0_30px_rgba(0,212,255,0.5)] hover:scale-105">
+                    <Sparkles className="w-4 h-4" />
+                    Get started free
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -477,13 +681,6 @@ export default function LandingPage() {
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
-const LATENCY_SECTION = {
-  title: "Stop Trading on Delayed Signals",
-  description:
-    "Most AI trading platforms analyze outdated snapshots of the market. By the time their signals reach you, the opportunity is already fading—leaving you stuck chasing price instead of leading it.",
-  solution:
-    "Our platform delivers ultra-fast, real-time analysis so you get signals when they matter most—right at the moment of opportunity.",
-};
 const FEATURES = [
   {
     icon: Brain,
@@ -555,7 +752,7 @@ const HOW_IT_WORKS = [
     description:
       "Every signal comes with defined levels and direction, helping you trade with structure, discipline, and control.",
   },
-];  
+];
 
 
 const PRICING_PLANS = [

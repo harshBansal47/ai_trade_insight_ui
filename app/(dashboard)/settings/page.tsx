@@ -27,6 +27,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useSession } from "next-auth/react";
 
 // ── Section wrapper ────────────────────────────────────────────────────────────
 
@@ -145,7 +146,9 @@ function Toggle({
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const {data:session, status} = useSession();
+  const user = session?.user;
+
 
   // Preferences state
   const [notifications, setNotifications] = useState({
@@ -173,7 +176,7 @@ export default function SettingsPage() {
     try {
       // POST /auth/delete-account
       await new Promise((r) => setTimeout(r, 1500)); // placeholder
-      logout();
+      // logout();
       router.push("/");
       toast.success("Account deleted");
     } catch {

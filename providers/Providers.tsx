@@ -1,10 +1,10 @@
 "use client";
 
 import { type ReactNode } from "react";
-import QueryProvider from "./QueryProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import QueryProvider from "./QueryProvider";
 import { useSyncAuthCookie } from "@/hooks/useAuth";
-
+import SessionProvider from "./SessionProvider";
 
 /**
  * Inner component so hooks can run inside QueryProvider
@@ -21,10 +21,12 @@ function InnerProviders({ children }: { children: ReactNode }) {
  */
 export default function Providers({ children }: { children: ReactNode }) {
   return (
+    <SessionProvider>
     <QueryProvider>
       <TooltipProvider delayDuration={300}>
         <InnerProviders>{children}</InnerProviders>
       </TooltipProvider>
     </QueryProvider>
+    </SessionProvider>
   );
 }

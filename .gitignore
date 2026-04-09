@@ -14,8 +14,8 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
-# Keep .env.example committed
-!.env.example
+.env.example
+
 
 # ── Misc ──────────────────────────────────────
 .DS_Store
