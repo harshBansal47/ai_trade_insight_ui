@@ -1,5 +1,6 @@
+import { AuthUser } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/api";
-import { User } from "@/types";
+
 
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -39,7 +40,7 @@ export interface ForgotPasswordRequest {
 }
 
 export interface AuthResponse {
-  user: User;
+  user: AuthUser;
   token: string;
   points: number;
   message: string;
@@ -109,6 +110,18 @@ export const authService = {
     return response.data;
   },
 
+  setPassword: async (data: {
+    email: string;
+    otp: string;
+    new_password: string;
+  }): Promise<{ message: string }> => {
+    const response = await apiClient.post<{ message: string }>(
+      "/auth/set-password",
+      data
+    );
+    return response.data;
+  },
+
   /**
    * Reset password using OTP
    */
@@ -123,8 +136,8 @@ export const authService = {
   /**
    * Get current user profile
    */
-  getProfile: async (): Promise<{ user: User; points: number }> => {
-    const response = await apiClient.get<{ user: User; points: number }>(
+  getProfile: async (): Promise<{ user: AuthUser; points: number }> => {
+    const response = await apiClient.get<{ user: AuthUser; points: number }>(
       "/auth/me"
     );
     return response.data;

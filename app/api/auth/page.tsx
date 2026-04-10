@@ -216,7 +216,7 @@ function Divider() {
 function LoginForm({ onForgot, callbackUrl }: {
   onForgot: () => void; callbackUrl: string;
 }) {
-  const [method, setMethod] = useState<"password" | "otp">("password");
+ const [method, setMethod] = useState<"password" | "otp">("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
@@ -226,11 +226,78 @@ function LoginForm({ onForgot, callbackUrl }: {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { seconds, isRunning, start } = useCountdown();
 
+  // ── Set-password sub-flow (for Google-only accounts) ──────────────────────
+  type SetPassStep = null | "otp" | "password";
+  const [setPassStep, setSetPassStep] = useState<SetPassStep>(null);
+  const [setPassOtp, setSetPassOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const { seconds: spSeconds, isRunning: spRunning, start: spStart } = useCountdown();
+
+ const handleSendSetPassOtp = async () => {
+    setLoading(true);
+    try {
+      // Reuses the "forgot_password" OTP purpose — same backend flow
+      await authService.sendOtp({ email, purpose: "forgot_password" });
+      setSetPassStep("otp");
+      spStart(60);
+      toast.success("Verification code sent to your email");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Failed to send code");
+    } finally { setLoading(false); }
+  };
+
+  const handleVerifySetPassOtp = async () => {
+    const ov = validateOtp(setPassOtp);
+    if (!ov.valid) { setErrors({ setPassOtp: ov.error! }); return; }
+    setLoading(true);
+    try {
+      const res = await authService.verifyOtp({ email, otp: setPassOtp, purpose: "forgot_password" });
+      if (res.verified) { setSetPassStep("password"); toast.success("Email verified!"); }
+      else setErrors({ setPassOtp: "Invalid or expired code." });
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Failed");
+    } finally { setLoading(false); }
+  };
+
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const pe = validatePassword(newPassword);
+    const ce = validateConfirmPassword(newPassword, confirmPassword);
+    const errs: Record<string, string> = {};
+    if (!pe.valid) errs.newPassword = pe.error!;
+    if (!ce.valid) errs.confirmPassword = ce.error!;
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+
+    setLoading(true);
+    try {
+      await authService.setPassword({ email, otp: setPassOtp, new_password: newPassword });
+      toast.success("Password set! Signing you in…");
+
+      // Auto-login with the newly created password
+      const result = await signIn("credentials-password", {
+        email, password: newPassword, redirect: false,
+      });
+      if (result?.ok) {
+        window.location.href = callbackUrl;
+      } else {
+        toast.info("Password set. Please sign in.");
+        setSetPassStep(null);
+        setMethod("password");
+        setPassword(newPassword);
+      }
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Failed to set password");
+    } finally { setLoading(false); }
+  };
+
+  // ── Google ─────────────────────────────────────────────────────────────────
   const handleGoogle = async () => {
     setGoogleLoading(true);
     await signIn("google", { callbackUrl });
   };
 
+  // ── OTP login ──────────────────────────────────────────────────────────────
   const handleSendOtp = async () => {
     const ev = validateEmail(email);
     if (!ev.valid) { setErrors({ email: ev.error! }); return; }
@@ -244,6 +311,7 @@ function LoginForm({ onForgot, callbackUrl }: {
     } finally { setLoading(false); }
   };
 
+  // ── Normal login submit ────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
@@ -259,25 +327,125 @@ function LoginForm({ onForgot, callbackUrl }: {
     setLoading(true);
     try {
       const providerId = method === "password" ? "credentials-password" : "credentials-otp";
-      const credentials = method === "password"
-        ? { email, password }
-        : { email, otp };
+      const credentials = method === "password" ? { email, password } : { email, otp };
 
-      const result = await signIn(providerId, {
-        ...credentials,
-        redirect: false,   // handle redirect ourselves so we can show errors
-      });
+      const result = await signIn(providerId, { ...credentials, redirect: false });
 
       if (result?.error) {
-        // NextAuth passes the error message thrown in authorize()
-        toast.error(result.error === "CredentialsSignin" ? "Invalid credentials" : result.error);
+        const msg: string = result.error === "CredentialsSignin" ? "Invalid credentials" : result.error;
+
+        // ← KEY CHANGE: detect the "no password" case and offer to set one
+        if (msg.toLowerCase().includes("not set password") || msg.toLowerCase().includes("google or otp")) {
+          toast.info("This account has no password yet. Let's set one up.", { duration: 4000 });
+          setSetPassStep("otp"); // jump straight to sending the OTP
+          await handleSendSetPassOtp();
+        } else {
+          toast.error(msg);
+        }
       } else if (result?.ok) {
-        window.location.href = callbackUrl; // hard redirect to bust cache
+        window.location.href = callbackUrl;
       }
     } catch {
       toast.error("An unexpected error occurred");
     } finally { setLoading(false); }
   };
+
+  // ── Set-password flow UI ───────────────────────────────────────────────────
+  if (setPassStep !== null) {
+    const STEPS = ["Send code", "Verify", "Set password"];
+    const si = { otp: 0, password: 1 } as const;
+
+    return (
+      <div className="space-y-6">
+        {/* Back */}
+        <button
+          type="button"
+          onClick={() => { setSetPassStep(null); setSetPassOtp(""); setNewPassword(""); setConfirmPassword(""); setErrors({}); }}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to sign in
+        </button>
+
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold text-foreground" style={{ fontFamily: "var(--font-display)" }}>
+            Set a password
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Your account uses Google sign-in. Verify your email to add a password.
+          </p>
+        </div>
+
+        <div className="flex justify-center">
+          <StepIndicator steps={STEPS} current={si[setPassStep as keyof typeof si] ?? 1} />
+        </div>
+
+        {setPassStep === "otp" && (
+          <div className="space-y-5">
+            <div className="text-center space-y-1.5 py-2">
+              <div className="w-12 h-12 rounded-2xl bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center mx-auto mb-3">
+                <Mail className="w-6 h-6 text-cyan-400" />
+              </div>
+              <p className="text-base font-semibold text-foreground">Check your inbox</p>
+              <p className="text-sm text-muted-foreground">
+                Code sent to <span className="text-foreground font-medium">{email}</span>
+              </p>
+            </div>
+            <OtpInput
+              value={setPassOtp}
+              onChange={(v) => { setSetPassOtp(v); setErrors((p) => ({ ...p, setPassOtp: "" })); }}
+              disabled={loading}
+            />
+            {errors.setPassOtp && <p className="text-sm text-red-400 text-center">{errors.setPassOtp}</p>}
+            <div className="text-center text-sm text-muted-foreground">
+              {spRunning
+                ? <span>Resend in <span className="text-foreground font-mono font-semibold">{spSeconds}s</span></span>
+                : <button type="button" onClick={handleSendSetPassOtp} className="text-cyan-400 hover:text-cyan-300 font-semibold">Resend code</button>
+              }
+            </div>
+            <PrimaryBtn type="button" loading={loading} onClick={handleVerifySetPassOtp} disabled={setPassOtp.length < 6}>
+              Verify email <ArrowRight className="w-4 h-4" />
+            </PrimaryBtn>
+          </div>
+        )}
+
+        {setPassStep === "password" && (
+          <form onSubmit={handleSetPassword} className="space-y-5">
+            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-green-400/5 border border-green-400/20">
+              <div className="w-8 h-8 rounded-lg bg-green-400/15 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-4 h-4 text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-green-400">Email verified</p>
+                <p className="text-xs text-muted-foreground">{email}</p>
+              </div>
+            </div>
+            <Field label="New password" type="password" value={newPassword}
+              onChange={(v) => { setNewPassword(v); setErrors((p) => ({ ...p, newPassword: "" })); }}
+              placeholder="Minimum 8 characters" required disabled={loading} error={errors.newPassword} />
+            <Field label="Confirm password" type="password" value={confirmPassword}
+              onChange={(v) => { setConfirmPassword(v); setErrors((p) => ({ ...p, confirmPassword: "" })); }}
+              placeholder="Repeat your password" required disabled={loading} error={errors.confirmPassword} />
+            <div className="flex items-center gap-2">
+              {[{ label: "8+ chars", ok: newPassword.length >= 8 },
+                { label: "Uppercase", ok: /[A-Z]/.test(newPassword) },
+                { label: "Number", ok: /[0-9]/.test(newPassword) }].map(({ label, ok }) => (
+                <div key={label} className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200",
+                  ok ? "bg-green-400/10 text-green-400 border border-green-400/20"
+                    : "bg-white/[0.04] text-muted-foreground border border-white/[0.08]")}>
+                  {ok && <CheckCircle2 className="w-3 h-3" />}{label}
+                </div>
+              ))}
+            </div>
+            <PrimaryBtn loading={loading}>
+              Set password & sign in <Sparkles className="w-4 h-4" />
+            </PrimaryBtn>
+          </form>
+        )}
+      </div>
+    );
+  }
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
