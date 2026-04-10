@@ -236,6 +236,7 @@ function LoginForm({ onForgot, callbackUrl }: {
 
  const handleSendSetPassOtp = async () => {
     setLoading(true);
+    setSetPassOtp("");
     try {
       // Reuses the "forgot_password" OTP purpose — same backend flow
       await authService.sendOtp({ email, purpose: "forgot_password" });
