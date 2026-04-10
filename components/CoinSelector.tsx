@@ -181,7 +181,7 @@ export default function CoinSelector({
               </span>
             </div>
             <button
-              type="button"
+              // type="button"
               onClick={(e) => { e.stopPropagation(); onChange(null); }}
               className="shrink-0 w-6 h-6 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.08] transition-colors"
             >

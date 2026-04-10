@@ -151,38 +151,38 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-          
-           {/* Quick prompts */}
-<div className="space-y-3">
-  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-    Quick Start
-  </p>
-  <div className="grid grid-cols-2 gap-2">
-    {QUICK_PROMPTS.map((prompt) => {
-      const Icon = prompt.icon;
-      return (
-        <button
-          key={`${prompt.symbol}-${prompt.mode}`}
-          onClick={() => handleQuickPrompt(prompt)}
-          disabled={isLoading || points < 10}
-          className={cn(
-            "group flex items-center gap-3 px-3.5 py-3 rounded-2xl border bg-gradient-to-r transition-all duration-200 text-left disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]",
-            prompt.color
-          )}
-        >
-          <div className={cn("w-8 h-8 rounded-xl bg-black/20 flex items-center justify-center shrink-0", prompt.iconColor)}>
-            <Icon className="w-4 h-4" strokeWidth={2} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-foreground leading-none">{prompt.symbol}</p>
-            <p className={cn("text-[11px] font-medium mt-0.5", prompt.iconColor)}>{prompt.mode}</p>
-          </div>
-          <ChevronRight className="w-3.5 h-3.5 ml-auto text-muted-foreground/30 group-hover:text-muted-foreground/60 group-hover:translate-x-0.5 transition-all shrink-0" />
-        </button>
-      );
-    })}
-  </div>
-</div>
+
+            {/* Quick prompts */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Quick Start
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {QUICK_PROMPTS.map((prompt) => {
+                  const Icon = prompt.icon;
+                  return (
+                    <button
+                      key={`${prompt.symbol}-${prompt.mode}`}
+                      onClick={() => handleQuickPrompt(prompt)}
+                      disabled={isLoading || points < 10}
+                      className={cn(
+                        "group flex items-center gap-3 px-3.5 py-3 rounded-2xl border bg-gradient-to-r transition-all duration-200 text-left disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]",
+                        prompt.color
+                      )}
+                    >
+                      <div className={cn("w-8 h-8 rounded-xl bg-black/20 flex items-center justify-center shrink-0", prompt.iconColor)}>
+                        <Icon className="w-4 h-4" strokeWidth={2} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-foreground leading-none">{prompt.symbol}</p>
+                        <p className={cn("text-[11px] font-medium mt-0.5", prompt.iconColor)}>{prompt.mode}</p>
+                      </div>
+                      <ChevronRight className="w-3.5 h-3.5 ml-auto text-muted-foreground/30 group-hover:text-muted-foreground/60 group-hover:translate-x-0.5 transition-all shrink-0" />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             {/* Recent history */}
             {historyLoading && (
@@ -213,10 +213,10 @@ export default function DashboardPage() {
                   {historyData.items.slice(0, 3).map((item) => {
                     const action = item.result?.action;
                     const actionStyle =
-                      action === "LONG"  ? "text-emerald-400 bg-emerald-400/10" :
-                      action === "SHORT" ? "text-red-400 bg-red-400/10" :
-                      action === "WAIT"  ? "text-yellow-400 bg-yellow-400/10" :
-                                          "text-muted-foreground bg-white/5";
+                      action === "LONG" ? "text-emerald-400 bg-emerald-400/10" :
+                        action === "SHORT" ? "text-red-400 bg-red-400/10" :
+                          action === "WAIT" ? "text-yellow-400 bg-yellow-400/10" :
+                            "text-muted-foreground bg-white/5";
                     return (
                       <Link
                         key={item.task_id}
