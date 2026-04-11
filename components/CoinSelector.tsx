@@ -6,9 +6,9 @@ import { cn } from "@/lib/utils";
 import COINS_DATA from "@/data/coins.json";
 
 export interface Coin {
-  id:     string;
+  id: string;
   symbol: string;
-  name:   string;
+  name: string;
 }
 
 const COINS: Coin[] = COINS_DATA;
@@ -29,9 +29,9 @@ const GECKO_URL = (id: string) =>
 const logoCache = new Map<string, string | null>();
 
 function useCoinLogo(symbol: string, id: string) {
-  const cdnSrc               = CDN_URL(symbol);
-  const [src,    setSrc]     = useState<string>(cdnSrc);
-  const [failed, setFailed]  = useState(false); // true = no logo at all
+  const cdnSrc = CDN_URL(symbol);
+  const [src, setSrc] = useState<string>(cdnSrc);
+  const [failed, setFailed] = useState(false); // true = no logo at all
 
   const handleCdnError = () => {
     // CDN didn't have this coin — try CoinGecko
@@ -71,8 +71,8 @@ function CoinAvatar({
   size = "md",
 }: {
   symbol: string;
-  id:     string;
-  size?:  "sm" | "md";
+  id: string;
+  size?: "sm" | "md";
 }) {
   const { src, failed, handleCdnError, handleImgError, cdnSrc } =
     useCoinLogo(symbol, id);
@@ -108,10 +108,10 @@ function CoinAvatar({
 
 /* ── Props ────────────────────────────────────────────────────*/
 interface CoinSelectorProps {
-  value:        Coin | null;
-  onChange:     (coin: Coin | null) => void;
+  value: Coin | null;
+  onChange: (coin: Coin | null) => void;
   placeholder?: string;
-  disabled?:    boolean;
+  disabled?: boolean;
 }
 
 /* ── Component ────────────────────────────────────────────────*/
@@ -119,19 +119,19 @@ export default function CoinSelector({
   value,
   onChange,
   placeholder = "Select a coin…",
-  disabled    = false,
+  disabled = false,
 }: CoinSelectorProps) {
-  const [open,  setOpen]  = useState(false);
+  const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const containerRef      = useRef<HTMLDivElement>(null);
-  const inputRef          = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const filtered = query
     ? COINS.filter(
-        (c) =>
-          c.name.toLowerCase().includes(query.toLowerCase()) ||
-          c.symbol.toLowerCase().includes(query.toLowerCase())
-      )
+      (c) =>
+        c.name.toLowerCase().includes(query.toLowerCase()) ||
+        c.symbol.toLowerCase().includes(query.toLowerCase())
+    )
     : COINS;
 
   useEffect(() => {
@@ -156,12 +156,18 @@ export default function CoinSelector({
     <div ref={containerRef} className="relative w-full">
 
       {/* ── Trigger ── */}
-      <button
-        type="button"
-        disabled={disabled}
+      <div
+        role="button"
+        tabIndex={disabled ? -1 : 0}
         onClick={() => !disabled && setOpen((v) => !v)}
+        onKeyDown={(e) => {
+          if (!disabled && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            setOpen((v) => !v);
+          }
+        }}
         className={cn(
-          "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-sm transition-all duration-200 text-left",
+          "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-sm transition-all duration-200 text-left cursor-pointer",
           "bg-white/[0.03] hover:bg-white/[0.05]",
           open
             ? "border-cyan-400/40 shadow-[0_0_0_3px_rgba(0,212,255,0.08)]"
@@ -172,16 +178,16 @@ export default function CoinSelector({
         {value ? (
           <>
             <CoinAvatar symbol={value.symbol} id={value.id} size="sm" />
-            <div className="flex-1 min-w-0 flex items-center gap-2">
+            <div className="flex-1 min-w-0 flex items-center  gap-2">
               <span className="font-semibold text-foreground truncate">
                 {value.name}
               </span>
-              <span className="text-xs text-muted-foreground shrink-0">
-                {value.symbol}
+              <span className="inline-flex items-center text-xs mt-1 rounded-full">
+               ({value.symbol}USDT)
               </span>
             </div>
             <button
-              // type="button"
+              type="button"
               onClick={(e) => { e.stopPropagation(); onChange(null); }}
               className="shrink-0 w-6 h-6 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.08] transition-colors"
             >
@@ -200,7 +206,7 @@ export default function CoinSelector({
             />
           </>
         )}
-      </button>
+      </div>
 
       {/* ── Dropdown (opens upward) ── */}
       {open && (
